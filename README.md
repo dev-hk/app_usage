@@ -22,10 +22,16 @@ var packageNames = ["com.android.chrome", "com.google.android.googlequicksearchb
 var endTime = DateTime.now().millisecondsSinceEpoch;
 var beginTime = endTime - 24 * 60 * 60 * 1000;
 // Returns a list of only those app usages that have used between beginTime and endTime
-List<Map<String, Object>> appUsages = await AppUsage.getAppUsages(packageNames, int beginTime, int endTime);
-for (Map<String, Object> appUsage in appUsages) {
-    print(appUsage['packageName']); // ex) com.android.chrome
-    print(appUsage['openTime']); // ex) 241 (sec)
-    print(appUsage['openCount']); // ex) 10
-}
+List<Map<String, Object>> appUsages;
+    try {
+      final List<dynamic> results = await AppUsage.getAppUsages(packageNames, beginTime, endTime);
+      appUsages = results.cast<Map<dynamic, dynamic>>().map((result) => result.cast<String, Object>()).toList();
+      for (Map<String, Object> appUsage in appUsages) {
+            print(appUsage['packageName']); // ex) com.android.chrome
+            print(appUsage['openTime']); // ex) 241 (sec)
+            print(appUsage['openCount']); // ex) 10
+        }
+    } on PlatformException {
+      appUsages = [];
+    }
 ```
