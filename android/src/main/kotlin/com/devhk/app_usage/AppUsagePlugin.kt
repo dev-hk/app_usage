@@ -31,7 +31,7 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   /// when the Flutter Engine is detached from the Activity
   private lateinit var channel : MethodChannel
 
-  private lateinit var context: Context
+  private lateinit var context : Context
   private lateinit var activity : Activity
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -42,9 +42,7 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
   @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else if (call.method == "getAppUsages") {
+    if (call.method == "getAppUsages") {
       val packageNames = call.argument<List<String>>("packageNames")
       val beginTime = call.argument<Long>("beginTime")
       val endTime = call.argument<Long>("endTime")
