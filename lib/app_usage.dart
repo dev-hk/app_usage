@@ -19,6 +19,7 @@ class AppUsage {
         "beginTime": beginTime,
         "endTime": endTime,
       });
+      if (results == null) return null;
       final List<Map<String, Object>> appUsages = results.cast<Map<dynamic, dynamic>>().map((result) => result.cast<String, Object>()).toList();
       return appUsages;
     } on PlatformException {
