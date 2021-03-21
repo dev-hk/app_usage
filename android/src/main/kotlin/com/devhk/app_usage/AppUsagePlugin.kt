@@ -56,8 +56,8 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler {
       val usageStatsManager = context.getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
 
       if (packageNames != null && beginTime != null && endTime != null) {
+        val usageEvents: UsageEvents = usageStatsManager.queryEvents(beginTime, endTime)
         for (packageName in packageNames) {
-          val usageEvents: UsageEvents = usageStatsManager.queryEvents(beginTime, endTime)
           val allEvents: MutableList<UsageEvents.Event> = mutableListOf()
           while (usageEvents.hasNextEvent()) {
             val currentEvent = UsageEvents.Event()
