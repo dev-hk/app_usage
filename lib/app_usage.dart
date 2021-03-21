@@ -7,23 +7,20 @@ class AppUsage {
   static const MethodChannel _channel =
       const MethodChannel('app_usage');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-
-  static Future<List<Map<String, Object>>> getAppUsages(List<String> packageNames, int beginTime, int endTime) async {
+  static Future<List<Map<String, dynamic>>> getAppUsages(List<String> packageNames, int beginTime, int endTime) async {
+    List<Map<String, dynamic>> appUsages = [];
     try {
-      final List<dynamic> results = await _channel.invokeMethod<List<dynamic>>('getAppUsages', {
+      var res = await _channel.invokeMethod<List<dynamic>>('getAppUsages', {
         "packageNames": packageNames,
         "beginTime": beginTime,
         "endTime": endTime,
       });
-      if (results == null) return null;
-      final List<Map<String, Object>> appUsages = results.cast<Map<dynamic, dynamic>>().map((result) => result.cast<String, Object>()).toList();
+      if (res != null) {
+        appUsages = res.cast<Map<dynamic, dynamic>>().map((result) => result.cast<String, dynamic>()).toList();
+      }
       return appUsages;
     } on PlatformException {
-      return null;
+      return appUsages;
     }
   }
 

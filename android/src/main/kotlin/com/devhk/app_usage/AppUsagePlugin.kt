@@ -52,27 +52,20 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler {
     if (!checkForPermission(context)) {
       return null
     } else {
-      val appUsageMaps: MutableList<Map<String, Any>> = mutableListOf()
+      var appUsageMaps: MutableList<MutableMap<String, Any>> = mutableListOf()
       val usageStatsManager = context.getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
 
       if (packageNames != null && beginTime != null && endTime != null) {
         val usageEvents: UsageEvents = usageStatsManager.queryEvents(beginTime, endTime)
-        for (packageName in packageNames) {
-          val allEvents: MutableList<UsageEvents.Event> = mutableListOf()
-          while (usageEvents.hasNextEvent()) {
-            val currentEvent = UsageEvents.Event()
-            usageEvents.getNextEvent(currentEvent)
-            if (currentEvent.packageName == packageName) {
-              if (currentEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED || currentEvent.eventType == UsageEvents.Event.ACTIVITY_PAUSED) {
-                allEvents.add(currentEvent)
-              }
-            }
-          }
-
-          if (allEvents.size > 0) {
-            appUsageMaps.add(getOpenTime(allEvents, packageName))
+        val allEvents: MutableList<UsageEvents.Event> = mutableListOf()
+        while (usageEvents.hasNextEvent()) {
+          val currentEvent = UsageEvents.Event()
+          usageEvents.getNextEvent(currentEvent)
+          if (currentEvent.eventType == UsageEvents.Event.ACTIVITY_RESUMED || currentEvent.eventType == UsageEvents.Event.ACTIVITY_PAUSED) {
+            allEvents.add(currentEvent)
           }
         }
+        appUsageMaps = getOpenTime(allEvents, packageNames)
       }
       return appUsageMaps
     }
@@ -86,22 +79,29 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler {
   }
 
   @RequiresApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-  private fun getOpenTime(events: MutableList<UsageEvents.Event>, packageName: String) : Map<String, Any> {
-    var openTime = 0
-    var openCount = 0
+  private fun getOpenTime(events: MutableList<UsageEvents.Event>, packageNames: List<String>) : MutableList<MutableMap<String, Any>> {
+    val appUsageMaps: MutableList<MutableMap<String, Any>> = mutableListOf()
     for (i in 0 until events.size - 1) {
       val e0 = events[i]
       val e1 = events[i + 1]
       if (e0.eventType == UsageEvents.Event.ACTIVITY_RESUMED
               && e1.eventType == UsageEvents.Event.ACTIVITY_PAUSED
-              && e0.className == e1.className) {
+              && e0.className == e1.className
+              && packageNames.contains(e0.packageName)) {
+                if (!appUsageMaps.any { it["packageName"] == e0.packageName }) {
+                  appUsageMaps.add(mutableMapOf("packageName" to e0.packageName, "openTime" to 0, "openCount" to 0))
+                }
         var diff: Int = (e1.timeStamp - e0.timeStamp).toInt()
         diff /= 1000
-        openTime += diff
-        openCount ++
+        appUsageMaps.forEach {
+          if (it["packageName"] == e0.packageName) {
+            it["openTime"] = it["openTime"] as Int + diff
+            it["openCount"] = it["openCount"] as Int + 1
+          }
+        }
       }
     }
-    return mutableMapOf("packageName" to packageName, "openTime" to openTime, "openCount" to openCount)
+    return appUsageMaps
   }
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
