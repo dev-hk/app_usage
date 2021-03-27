@@ -94,7 +94,7 @@ class AppUsagePlugin: FlutterPlugin, MethodCallHandler {
         var diff: Int = (e1.timeStamp - e0.timeStamp).toInt()
         diff /= 1000
         appUsageMaps.forEach {
-          if (it["packageName"] == e0.packageName) {
+          if (it["packageName"] == e0.packageName && diff > 0) {
             it["openTime"] = it["openTime"] as Int + diff
             it["openCount"] = it["openCount"] as Int + 1
           }
